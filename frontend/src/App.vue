@@ -61,9 +61,9 @@
         </v-card>
       </v-dialog>
     </v-row>
-    <v-content fluid>
+    <v-main fluid>
       <router-view />
-    </v-content>
+    </v-main>
     
   </v-app>
 </template>
