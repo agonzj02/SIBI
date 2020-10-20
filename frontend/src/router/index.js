@@ -35,6 +35,14 @@ const routes = [
       hideForAuth: true
     }
   },
+  {
+    path: '/inicial',
+    name: 'Inicial',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Inicial.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
   { path: '/', redirect: '/login' },
   { path: '*', redirect: '/login' },
 ]

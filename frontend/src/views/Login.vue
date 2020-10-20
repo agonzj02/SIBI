@@ -68,7 +68,6 @@ const axios = require("axios");
 import { mapState, mapMutations} from 'vuex'
 export default {
   name: "Login",
-
   data: () => ({
     password: "",
     user : "",
@@ -86,6 +85,7 @@ export default {
         }
       }
       this.logearse()
+      this.$router.push('Inicial')
       },
       ...mapMutations(['logearse','setNombreUsuario'])
     }
