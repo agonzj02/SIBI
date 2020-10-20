@@ -27,6 +27,7 @@
         <v-card-text >
           <div>Director : {{ director }}</div>
           <div class="mt-2">País : {{ country }}</div>
+          <div class="mt-2">Año : {{ year }}</div>
           <div class="mt-2">
             <v-btn class="ma-2" outlined color="indigo" :href=link target="_blank">
               Link IMDB
@@ -58,15 +59,8 @@
 <script>
 export default {
   name: "Pelicula",
+  props: ['title','imdbID','picture','country','director','actors','genre','id','year'],
   data: () => ({
-    id: 11,
-    title: "Jumanji",
-    imdbID: "0113497",
-    picture: "http://content8.flixster.com/movie/56/79/73/5679734_det.jpg",
-    country: "USA",
-    director: "Joe Johnston",
-    actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
-    genre: ["Adventure", "Fantasy", "Children"],
     show: false,
     rating: null,
   }),
