@@ -61,9 +61,27 @@ export default {
   name: "Pelicula",
   props: ['title','imdbID','picture','country','director','actors','genre','id','year'],
   data: () => ({
+    clicked: false,
     show: false,
     rating: null,
   }),
+  watch: {
+    // whenever question changes, this function will run
+    rating: function () {
+      if(!this.clicked){
+        this.clicked = true
+        this.$emit('addReview')
+      }
+    }
+  },
+  methods: {
+    addReview() {
+      if(!this.clicked){
+        this.clicked = true
+        this.$emit('addReview')
+      }
+   }
+  },
   computed: {
     generos() {
       var string = "";

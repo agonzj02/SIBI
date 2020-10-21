@@ -3,19 +3,31 @@
         <v-row>
             <v-col cols="3" v-for="item in peliculas" :key="item.id">
                 <Pelicula :title="item.title" :id="item.id" :imdbID="item.imdbID" :picture="item.picture" :year="item.year"
-                :country="item.country" :director="item.director" :actors="item.actors" :genre="item.genre"></Pelicula>
+                :country="item.country" :director="item.director" :actors="item.actors" :genre="item.genre" @addReview="reviewed++"></Pelicula>
             </v-col>
         </v-row>
+        <div v-if="cambiar">
+            <Alerta/>
+        </div>
     </v-container>
 </template>
 
 <script>
 import Pelicula from "@/components/Pelicula.vue";
+import Alerta from "@/components/Alerta.vue";
 
 export default{
     name: "Inicial",
     components: {
-        Pelicula
+        Pelicula,
+        Alerta
+    },
+    watch: {
+        reviewed: function () {
+            if(this.reviewed == 5){
+                this.cambiar = true
+            }
+        }
     },
     data: () => ({
         peliculas : [{
@@ -84,7 +96,10 @@ export default{
             genre: ["Adventure", "Fantasy", "Children"],
             year: 1980
         }
-        ]
+        ],
+        reviewed: 0,
+
+        cambiar: false
     })
     }
 </script>
