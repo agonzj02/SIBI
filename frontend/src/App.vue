@@ -117,7 +117,7 @@ export default {
         return "background: rgb(136,22,42);background: linear-gradient(90deg, rgba(136,22,42,1) 0%, rgba(253,29,29,1) 40%, rgba(214,125,125,1) 94%);"
       }
       else{
-        return "background-color: #dea0a0;"
+        return "background-color: #000;"
       }
     },
     ...mapState(['logged','nombreUsuario'])

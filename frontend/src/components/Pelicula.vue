@@ -76,12 +76,12 @@ export default {
     "year",
     "inicial",
     "width",
-    "height"
+    "height",
+    'rating'
   ],
   data: () => ({
     clicked: false,
     show: false,
-    rating: null,
   }),
   watch: {
     // whenever question changes, this function will run

@@ -3,9 +3,22 @@
     <v-row>
       <v-col>
         <div>
-          <p class="font-weight-black text-center text-h4">
-            Prueba, valora al menos 3 películas que te gustan.
+          <p class="font-weight-black text-center white--text text-h4">
+            {{nombreUsuario}}, valora al menos 5 películas que hayas visto.
           </p>
+          <p class="text-center white--text text-h6">
+            Así podremos encontrar películas que te gusten
+          </p>
+          <div class="text-center">
+          <v-btn
+              x-large
+              color="success"
+              dark
+              @click="continuar"
+            >
+              Continuar
+            </v-btn>
+          </div>
         </div>
       </v-col>
     </v-row>
@@ -24,32 +37,24 @@
           :inicial="false"
           :width="180"
           :height="268"
+          :rating=null
           @addReview="reviewed++"
         ></Pelicula>
       </v-col>
     </v-row>
-    <div v-if="cambiar">
-      <Alerta />
-    </div>
   </v-container>
 </template>
 
 <script>
 import Pelicula from "@/components/Pelicula.vue";
 import Alerta from "@/components/Alerta.vue";
+import { mapState, mapMutations} from 'vuex'
 
 export default {
   name: "Inicial",
   components: {
     Pelicula,
     Alerta,
-  },
-  watch: {
-    reviewed: function () {
-      if (this.reviewed == 5) {
-        this.cambiar = true;
-      }
-    },
   },
   data: () => ({
     peliculas: [
@@ -256,12 +261,15 @@ export default {
 
     cambiar: false,
   }),
+  computed: {
+    ...mapState(['logged', 'nombreUsuario', 'IP'])
+  },
+  methods: {
+    continuar(){
+      if(this.reviewed >=5){
+        this.$router.push("/Home")
+      }
+    }
+  }
 };
 </script>
-
-<style lang="css" scoped>
-.p {
-  font-size: 0.8em;
-  font-weight: 100;
-}
-</style>
