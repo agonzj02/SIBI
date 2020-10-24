@@ -45,10 +45,10 @@
     </div>
     <v-card-actions class="pa-4">
       <span class="grey--text text--lighten-2 caption mr-2">
-        ({{ rating }})
+        ({{ rating_aux }})
       </span>
       <v-rating
-        v-model="rating"
+        v-model="rating_aux"
         background-color="black"
         color="yellow accent-4"
         dense
@@ -61,8 +61,7 @@
 </template>
 
 <script>
-
-import { mapState, mapMutations} from 'vuex'
+import { mapState, mapMutations } from "vuex";
 
 export default {
   name: "Pelicula",
@@ -79,27 +78,34 @@ export default {
     "inicial",
     "width",
     "height",
-    'rating'
+    "rating",
   ],
   data: () => ({
     clicked: false,
     show: false,
+    rating_aux: null,
   }),
+  mounted: function () {
+    this.iniciar_rating_aux();
+  },
   watch: {
     // whenever question changes, this function will run
-    rating: function () {
+    rating_aux: function () {
       if (!this.clicked) {
         this.clicked = true;
-        this.$emit("addReview");
       }
+      this.addReview()
     },
   },
   methods: {
     addReview() {
       if (!this.clicked) {
         this.clicked = true;
-        this.$emit("addReview");
       }
+      this.$emit("addReview", this.rating_aux, this.id);
+    },
+    iniciar_rating_aux() {
+      this.rating_aux = this.rating;
     },
   },
   computed: {
@@ -126,7 +132,7 @@ export default {
     link() {
       return "https://www.imdb.com/title/tt" + this.imdbID + "/";
     },
-    ...mapState(['IP'])
+    ...mapState(["IP"]),
   },
 };
 </script>

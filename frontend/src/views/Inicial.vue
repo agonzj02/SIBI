@@ -4,18 +4,13 @@
       <v-col>
         <div>
           <p class="font-weight-black text-center white--text text-h4">
-            {{nombreUsuario}}, valora al menos 5 películas que hayas visto.
+            {{ nombreUsuario }}, valora al menos 5 películas que hayas visto.
           </p>
           <p class="text-center white--text text-h6">
             Así podremos encontrar películas que te gusten
           </p>
           <div class="text-center">
-          <v-btn
-              x-large
-              color="success"
-              dark
-              @click="continuar"
-            >
+            <v-btn x-large color="success" dark @click="continuar">
               Continuar
             </v-btn>
           </div>
@@ -37,8 +32,8 @@
           :inicial="false"
           :width="180"
           :height="268"
-          :rating=null
-          @addReview="reviewed++"
+          :rating="null"
+          @addReview="addReview"
         ></Pelicula>
       </v-col>
     </v-row>
@@ -48,7 +43,7 @@
 <script>
 import Pelicula from "@/components/Pelicula.vue";
 import Alerta from "@/components/Alerta.vue";
-import { mapState, mapMutations} from 'vuex'
+import { mapState, mapMutations } from "vuex";
 
 export default {
   name: "Inicial",
@@ -262,14 +257,22 @@ export default {
     cambiar: false,
   }),
   computed: {
-    ...mapState(['logged', 'nombreUsuario', 'IP'])
+    ...mapState(["logged", "nombreUsuario", "IP"]),
   },
   methods: {
-    continuar(){
-      if(this.reviewed >=5){
-        this.$router.push("/Home")
+    continuar() {
+      if (this.reviewed >= 5) {
+        this.$router.push("/Home");
       }
-    }
-  }
+    },
+    addReview(rating, id) {
+      this.reviewed ++;
+      for (var i = 0; i < this.peliculas.length; i++) {
+        if (this.peliculas[i].id == id) {
+          this.peliculas[i].rating = rating
+        }
+      }
+    },
+  },
 };
 </script>
