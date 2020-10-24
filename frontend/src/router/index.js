@@ -43,6 +43,14 @@ const routes = [
       requiresAuth: true
     }
   },
+  {
+    path: '/valoraciones',
+    name: 'Valoraciones',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Valoraciones.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
   { path: '/', redirect: '/login' },
   { path: '*', redirect: '/login' },
 ]

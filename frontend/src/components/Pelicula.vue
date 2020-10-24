@@ -1,7 +1,6 @@
 <template>
   <v-card class="mx-auto" :max-width="width">
     <v-img :src="picture" :width="width" :height="height"></v-img>
-
     <v-card-title>
       {{ title }}
     </v-card-title>
@@ -62,6 +61,9 @@
 </template>
 
 <script>
+
+import { mapState, mapMutations} from 'vuex'
+
 export default {
   name: "Pelicula",
   props: [
@@ -124,6 +126,7 @@ export default {
     link() {
       return "https://www.imdb.com/title/tt" + this.imdbID + "/";
     },
+    ...mapState(['IP'])
   },
 };
 </script>

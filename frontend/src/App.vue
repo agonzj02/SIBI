@@ -96,6 +96,9 @@ export default {
       }else if(item.title == "Mi perfil"){
         this.$router.push('/perfil')
       }*/
+      if(item.title == "Mis valoraciones"){
+        this.$router.push('/valoraciones')
+      }
       if(item != 0){
         return 0
       }
