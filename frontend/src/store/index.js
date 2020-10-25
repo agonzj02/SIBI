@@ -10,14 +10,14 @@ export default new Vuex.Store({
     IP: 'http://localhost:3000',
   },
   mutations: {
-    logearse(state){
+    logearse(state) {
       state.logged = true
     },
-    deslogearse(state){
+    deslogearse(state) {
       state.logged = false
       state.nombreUsuario = ''
     },
-    setNombreUsuario(state, msg){
+    setNombreUsuario(state, msg) {
       state.nombreUsuario = msg
     },
   },

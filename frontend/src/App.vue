@@ -99,10 +99,9 @@ export default {
       if(item.title == "Mis valoraciones"){
         this.$router.push('/valoraciones')
       }
-      if(item != 0){
-        return 0
+      else if(item.title == "Películas"){
+        this.$router.push('/buscar')
       }
-      return 1
     },
     cerrarSesionDialog(){
       return 0

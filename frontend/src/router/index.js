@@ -51,6 +51,14 @@ const routes = [
       requiresAuth: true
     }
   },
+  {
+    path: '/buscar',
+    name: 'Buscar',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Buscar.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
   { path: '/', redirect: '/login' },
   { path: '*', redirect: '/login' },
 ]
@@ -75,13 +83,13 @@ router.beforeEach((to, from, next) => {
 
   if (to.matched.some(record => record.meta.hideForAuth)) {
     if (store.state.logged) {
-        next({ path: '/home' });
+      next({ path: '/home' });
     } else {
-        next();
+      next();
     }
-} else {
+  } else {
     next();
-}
+  }
 })
 
 export default router
