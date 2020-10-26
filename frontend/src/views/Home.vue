@@ -1,12 +1,141 @@
 <template>
-  <div class="home">
-  </div>
+  <v-container fluid>
+    <v-row align="start" align-start>
+      <v-col cols="12">
+        <v-card elevation="24" class="mx-auto" dark>
+          <v-carousel height="300" width="7500">
+            <v-carousel-item
+              v-for="(item, i) in items"
+              :key="i"
+              :src="item.src"
+              reverse-transition="fade-transition"
+              transition="fade-transition"
+            ></v-carousel-item>
+          </v-carousel>
+          <v-divider></v-divider>
+          <v-row>
+            <v-col cols="6" class="ml-4 mr-5">
+              <v-select
+                v-model="algoritmo"
+                :items="algoritmos"
+                label="Selecciona un algoritmo de recomendacion"
+              >
+              </v-select>
+            </v-col>
+            <v-col cols="2"></v-col>
+            <v-col cols="3" class="d-flex ml-5 mr-n7">
+              <v-select
+                v-model="numero"
+                :items="numeros"
+                label="Selecciona nº recomendaciones"
+              >
+              </v-select>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="3" v-for="item in peliculas" :key="item.id">
+        <Pelicula
+          :title="item.title"
+          :id="item.id"
+          :imdbID="item.imdbID"
+          :picture="item.picture"
+          :year="item.year"
+          :country="item.country"
+          :director="item.director"
+          :actors="item.actors"
+          :genre="item.genre"
+          :inicial="true"
+          :width="300"
+          :height="400"
+          :rating="item.rating"
+          @addReview="addReview"
+        ></Pelicula>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
-// @ is an alias to /src
+import Pelicula from "@/components/Pelicula.vue";
+import { mapState, mapMutations } from "vuex";
 
 export default {
-  name: 'Home'
-}
+  name: "Home",
+  components: {
+    Pelicula,
+  },
+  data: () => ({
+    algoritmo: "Basado en perfiles parecidos",
+    algoritmos: ["Basado en gustos propios", "Basado en perfiles parecidos"],
+    numero: 5,
+    numeros: [1, 5, 10, 15, 20],
+    items: [
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/squirrel.jpg",
+      },
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/sky.jpg",
+      },
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/bird.jpg",
+      },
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/planet.jpg",
+      },
+    ],
+    peliculas: [
+      {
+        id: 11,
+        title: "Jumanji",
+        imdbID: "0113497",
+        picture: "http://content8.flixster.com/movie/56/79/73/5679734_det.jpg",
+        country: "USA",
+        director: "Joe Johnston",
+        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
+        genre: ["Adventure", "Fantasy", "Children"],
+        year: 2010,
+        rating: 3.5,
+      },
+      {
+        id: 804,
+        title: "Ella es unica",
+        imdbID: "0117628",
+        picture: "http://content9.flixster.com/movie/27/16/271699_det.jpg",
+        country: "USA",
+        director: "Joe Johnston",
+        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
+        genre: ["Adventure", "Fantasy", "Children"],
+        year: 2000,
+        rating: 2.5,
+      },
+      {
+        id: 3239,
+        title: "Ella es unica",
+        imdbID: "0141399",
+        picture: "http://content7.flixster.com/movie/28/13/281397_det.jpg",
+        country: "USA",
+        director: "Joe Johnston",
+        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
+        genre: ["Adventure", "Fantasy", "Children"],
+        year: 1980,
+        rating: 5.0,
+      },
+    ],
+  }),
+  methods: {
+    addReview(rating, id) {
+      for (var i = 0; i < this.peliculas.length; i++) {
+        if (this.peliculas[i].id == id) {
+          this.peliculas[i].rating = rating;
+        }
+      }
+    },
+  },
+  computed: {
+    ...mapState(["IP"]),
+  },
+};
 </script>

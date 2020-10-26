@@ -8,14 +8,18 @@
               Selecciona en base a qué quieres ordenar las películas que has
               valorado
             </v-card-title>
-            <v-select
-              :items="criterios"
-              v-model="criterio"
-              dark
-              outlined
-              dense
-              @input="ordenar"
-            ></v-select>
+            <v-row>
+              <v-col cols="4" class=" d-flex ml-5">
+                <v-select
+                  :items="criterios"
+                  v-model="criterio"
+                  dark
+                  outlined
+                  dense
+                  @input="ordenar"
+                ></v-select>
+              </v-col>
+            </v-row>
           </v-card>
         </div>
       </v-col>
@@ -59,7 +63,7 @@ export default {
       "Más nuevas primero",
       "Más antiguas primero",
       "Orden alfabético(A-Z)",
-      "Orden alfabético(Z-A)"
+      "Orden alfabético(Z-A)",
     ],
     criterio: "Mejor valoradas primero",
     peliculas: [
@@ -108,18 +112,14 @@ export default {
       } else if (this.criterio == "Peor valoradas primero") {
         this.ordenar_mejor_valoradas();
         this.peliculas.reverse();
-      }
-      else if(this.criterio == "Más nuevas primero"){
-        this.ordenar_mas_nuevas()
-      }
-      else if(this.criterio == "Más antiguas primero"){
-        this.ordenar_mas_antiguas()
-      }
-      else if(this.criterio == "Orden alfabético(A-Z)"){
-        this.ordenar_alfabetico_a()
-      }
-      else if(this.criterio == "Orden alfabético(Z-A)"){
-        this.ordenar_alfabetico_z()
+      } else if (this.criterio == "Más nuevas primero") {
+        this.ordenar_mas_nuevas();
+      } else if (this.criterio == "Más antiguas primero") {
+        this.ordenar_mas_antiguas();
+      } else if (this.criterio == "Orden alfabético(A-Z)") {
+        this.ordenar_alfabetico_a();
+      } else if (this.criterio == "Orden alfabético(Z-A)") {
+        this.ordenar_alfabetico_z();
       }
     },
     ordenar_mejor_valoradas() {
@@ -140,20 +140,20 @@ export default {
         return year_a > year_b ? -1 : year_a < year_b ? 1 : 0;
       });
     },
-    ordenar_mas_antiguas(){
-      this.ordenar_mas_nuevas()
-      this.peliculas.reverse()
+    ordenar_mas_antiguas() {
+      this.ordenar_mas_nuevas();
+      this.peliculas.reverse();
     },
-    ordenar_alfabetico_a(){
+    ordenar_alfabetico_a() {
       this.peliculas.sort(function (a, b) {
         var year_a = a.title;
         var year_b = b.title;
         return year_a < year_b ? -1 : year_a > year_b ? 1 : 0;
       });
     },
-    ordenar_alfabetico_z(){
-      this.ordenar_alfabetico_a()
-      this.peliculas.reverse()
+    ordenar_alfabetico_z() {
+      this.ordenar_alfabetico_a();
+      this.peliculas.reverse();
     },
     addReview(rating, id) {
       for (var i = 0; i < this.peliculas.length; i++) {

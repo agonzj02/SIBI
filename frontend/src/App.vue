@@ -86,21 +86,14 @@ export default {
   },
   methods: {
     acciones(item){
-      /*
-      if(item.title == "Acciones"){
-        this.$router.push('/MisAcciones')
-      }else if(item.title == "Movimientos"){
-        this.$router.push('/MisMovimientos')
-      }else if(item.title == "Inicio"){
-        this.$router.push('/home')
-      }else if(item.title == "Mi perfil"){
-        this.$router.push('/perfil')
-      }*/
       if(item.title == "Mis valoraciones"){
         this.$router.push('/valoraciones')
       }
       else if(item.title == "Películas"){
         this.$router.push('/buscar')
+      }
+      else if(item.title == "Inicio"){
+        this.$router.push("/home")
       }
     },
     cerrarSesionDialog(){
