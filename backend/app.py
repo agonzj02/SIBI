@@ -3,6 +3,7 @@ import numpy as np
 import os
 import ast
 import base64
+import random
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -76,6 +77,17 @@ def serialize_user(user, num_rated=None):
         'username': user['username'],
         'num_rated': num_rated
     }
+
+def serialize_top_movie(genre, movies):
+    normalized = []
+    for movie in movies:
+        normalized.append({
+            'id': movie['id'],
+            'title': movie['title'],
+            'picture': movie['picture'],
+            'genre' : genre
+        })
+    return normalized
 
 class Register(Resource):
     def post(self):
@@ -153,9 +165,42 @@ class Login(Resource):
         else:
             return {'error': "El usuario no existe"}, 400
 
+class TopMoviesByGenre(Resource):
+    def get(self):
+        def get_top_movies(tx):
+            return list(tx.run(
+                '''
+                match(u:User)-[j:RATED]->(m:Movie)-[r:OF_GENRE]->(g:Genre)
+                with m, g, count(j) as nr
+                order by nr desc
+                return g.class as genre, collect(m)[0..4] as movies
+                '''
+            ))
+
+        db = get_db()
+        result = db.read_transaction(get_top_movies)
+
+        serialized = [serialize_top_movie(record['genre'], record['movies'])  for record in result]
+        final = []
+        def search_movie(lista, movie):
+            for i in lista:
+                if i['id'] == movie['id']:
+                    return False
+            return True
+
+        for serie in serialized:
+            for elem in serie:
+                if search_movie(final, elem):
+                    final.append(elem)
+
+        random.shuffle(final)
+        return final, 200
+
+
 
 api.add_resource(Register, "/register")
 api.add_resource(Login, "/login")
+api.add_resource(TopMoviesByGenre, "/top")
 
 if __name__ == "__main__":
     app.run(debug=True)
