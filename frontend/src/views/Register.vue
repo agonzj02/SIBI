@@ -113,13 +113,23 @@ export default {
   },
   methods: {
     confirmaRegistro() {
-      if (this.nombre != "" && this.apellidos != "") {
+      if (this.nombre != "" && this.apellidos != "" && this.user != "" && this.password != "" && this.password1 != "" && this.password.localeCompare(this.password1)==0) {
         const userData = {
           nombre: this.nombre,
           apellidos: this.apellidos,
-          email: this.email,
-          pass: this.password
+          user: this.user,
+          password: this.password
         };
+
+        axios.post(this.IP + "/register", userData).then(
+          response => {
+            if (Object.prototype.hasOwnProperty.call(response.data, "error")) {
+              this.visibleAlerta = true;
+            } else {
+              this.$router.push('Login')
+            }
+          }
+        );
       }
     }
   }

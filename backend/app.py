@@ -106,27 +106,53 @@ class Register(Resource):
                 }
             ).single()
 
-        inp = request.form
+        inp = request.get_json()
         nombre = inp['nombre']
         apellidos = inp['apellidos']
         username = inp['user']
         password = inp['password']
         password = password.encode("utf-8")
         password = base64.b64encode(password)
-
         db = get_db()
         result = db.read_transaction(get_user_by_username, username)
-
         if result and result.get('user'):
             return {'error': 'username already in use'}, 400
         else:
             id = db.read_transaction(get_next_id)['max']
-
         result = db.write_transaction(create_user, int(id), nombre, apellidos, username, password)
         user = result['user']
         return serialize_user(user), 201
 
+class Login(Resource):
+    def post(self):
+        def get_user_by_username(tx, username):
+            return tx.run(
+                '''
+                MATCH (user:User {username: $username}) RETURN user
+                ''', {'username': username}
+            ).single()
+
+        inp = request.get_json()
+        username = inp['user']
+        password = inp['pass']
+        password = password.encode("utf-8")
+        password = base64.b64encode(password)
+
+        db = get_db()
+        result = db.read_transaction(get_user_by_username, username)
+        if result and result.get('user'):
+            user = result['user']
+            pas = user['password']
+            if str(pas) == str(password):
+                return serialize_user(user), 200
+            else:
+                return {'error': "Contraseña incorrecta"}, 400
+        else:
+            return {'error': "El usuario no existe"}, 400
+
+
 api.add_resource(Register, "/register")
+api.add_resource(Login, "/login")
 
 if __name__ == "__main__":
     app.run(debug=True)
