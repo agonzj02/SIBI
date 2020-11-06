@@ -68,12 +68,13 @@ def serialize_movie(movie, genres, actors, directors, country, my_rating=None):
         'rating' : my_rating
     }
 
-def serialize_user(user):
+def serialize_user(user, num_rated=None):
     return{
         'id': user['id'],
         'nombre': user['nombre'],
         'apellidos': user['apellidos'],
-        'username': user['username']
+        'username': user['username'],
+        'num_rated': num_rated
     }
 
 class Register(Resource):
@@ -128,7 +129,8 @@ class Login(Resource):
         def get_user_by_username(tx, username):
             return tx.run(
                 '''
-                MATCH (user:User {username: $username}) RETURN user
+                MATCH (user:User {username: $username})
+                OPTIONAL MATCH (m)-[r:RATED]->(m:Movie) RETURN user, count(r) as cnt
                 ''', {'username': username}
             ).single()
 
@@ -143,8 +145,9 @@ class Login(Resource):
         if result and result.get('user'):
             user = result['user']
             pas = user['password']
+            cnt = result['cnt']
             if str(pas) == str(password):
-                return serialize_user(user), 200
+                return serialize_user(user, cnt), 200
             else:
                 return {'error': "Contraseña incorrecta"}, 400
         else:

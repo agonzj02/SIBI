@@ -76,7 +76,7 @@
                 prepend-icon="mdi-fingerprint"
               ></v-text-field>
             </v-row>
-            <v-alert :value="visibleAlerta" justify-center type="error" height="40" dense>Ese Email ya ha sido registrado.</v-alert>
+            <v-alert :value="visibleAlerta" justify-center type="error" height="40" dense>Ese usuario ya ha sido registrado.</v-alert>
             <v-row>
               <v-col xs12 sm6>
                 <v-btn @click="confirmaRegistro" color="white" light>Confirmar</v-btn>
@@ -129,7 +129,10 @@ export default {
               this.$router.push('Login')
             }
           }
-        );
+        ).catch(error => {
+          this.visibleAlerta = true;
+        })
+          ;
       }
     }
   }

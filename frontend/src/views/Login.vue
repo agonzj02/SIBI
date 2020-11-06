@@ -96,9 +96,26 @@ export default {
           user: this.user,
           pass: this.password,
         };
+        axios
+          .post(this.IP + "/login", userData)
+          .then((response) => {
+            let user = response.data;
+            this.setNombreUsuario(user["username"]);
+            if (user["num_rated"] != 0) {
+              this.logearse();
+              this.$router.push("/home");
+            } else {
+              this.logearse();
+              this.$router.push("/inicial");
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+            this.password = "";
+            this.user = "";
+            this.visibleAlerta = true;
+          });
       }
-      this.logearse();
-      this.$router.push("Inicial");
     },
     ...mapMutations(["logearse", "setNombreUsuario"]),
   },
