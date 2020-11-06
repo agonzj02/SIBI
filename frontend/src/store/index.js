@@ -7,7 +7,7 @@ export default new Vuex.Store({
   state: {
     logged: false,
     nombreUsuario: 'Alvaro',
-    IP: 'http://localhost:3000',
+    IP: 'http://127.0.0.1:5000',
   },
   mutations: {
     logearse(state) {

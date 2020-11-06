@@ -43,9 +43,8 @@
               <v-text-field
                 v-model="user"
                 name="email-sin"
-                label="Usuario"
+                label="Nombre de usuario"
                 id="email-sin"
-                type="email"
                 required
                 dark
                 prepend-icon="mdi-account-circle"
@@ -69,7 +68,7 @@
                 :rules="[v => !!v || 'La contraseña es necesaria.',
                 v => v==this.password || 'Tiene que ser iguales']"
                 name="password1"
-                label="Repitir Contraseña"
+                label="Repetir Contraseña"
                 id="password-sin2"
                 type="password"
                 required
@@ -78,9 +77,7 @@
               ></v-text-field>
             </v-row>
             <v-alert :value="visibleAlerta" justify-center type="error" height="40" dense>Ese Email ya ha sido registrado.</v-alert>
-            
             <v-row>
-              
               <v-col xs12 sm6>
                 <v-btn @click="confirmaRegistro" color="white" light>Confirmar</v-btn>
               </v-col>
