@@ -79,7 +79,7 @@ export default {
       dialog:false,
       items: [
         { title: "Inicio", icon: "mdi-home-variant" },
-        { title: "Películas", icon: "mdi-movie" },
+        { title: "Buscar películas", icon: "mdi-movie" },
         { title: "Mis valoraciones", icon: "mdi-star-circle" },
       ]
     };
@@ -89,7 +89,7 @@ export default {
       if(item.title == "Mis valoraciones"){
         this.$router.push('/valoraciones')
       }
-      else if(item.title == "Películas"){
+      else if(item.title == "Buscar películas"){
         this.$router.push('/buscar')
       }
       else if(item.title == "Inicio"){
@@ -97,13 +97,17 @@ export default {
       }
     },
     cerrarSesionDialog(){
-      return 0
+      this.dialog=true
 
     },
     confirmarCierreSesion(){
-      return 0
+      this.deslogearse()
+      this.drawer=false
+      this.dialog=false
+      this.$router.push('/login')
       
-    }
+    },
+    ...mapMutations(['deslogearse'])
   },
   computed: {
 

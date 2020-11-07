@@ -44,9 +44,9 @@
           :picture="item.picture"
           :year="item.year"
           :country="item.country"
-          :director="item.director"
+          :director="item.directors"
           :actors="item.actors"
-          :genre="item.genre"
+          :genre="item.genres"
           :inicial="true"
           :width="300"
           :height="400"
@@ -61,6 +61,7 @@
 <script>
 import Pelicula from "@/components/Pelicula.vue";
 import { mapState, mapMutations } from "vuex";
+const axios = require("axios");
 
 export default {
   name: "Home",
@@ -86,46 +87,23 @@ export default {
         src: "https://cdn.vuetifyjs.com/images/carousel/planet.jpg",
       },
     ],
-    peliculas: [
-      {
-        id: 11,
-        title: "Jumanji",
-        imdbID: "0113497",
-        picture: "http://content8.flixster.com/movie/56/79/73/5679734_det.jpg",
-        country: "USA",
-        director: "Joe Johnston",
-        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
-        genre: ["Adventure", "Fantasy", "Children"],
-        year: 2010,
-        rating: 3.5,
-      },
-      {
-        id: 804,
-        title: "Ella es unica",
-        imdbID: "0117628",
-        picture: "http://content9.flixster.com/movie/27/16/271699_det.jpg",
-        country: "USA",
-        director: "Joe Johnston",
-        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
-        genre: ["Adventure", "Fantasy", "Children"],
-        year: 2000,
-        rating: 2.5,
-      },
-      {
-        id: 3239,
-        title: "Ella es unica",
-        imdbID: "0141399",
-        picture: "http://content7.flixster.com/movie/28/13/281397_det.jpg",
-        country: "USA",
-        director: "Joe Johnston",
-        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
-        genre: ["Adventure", "Fantasy", "Children"],
-        year: 1980,
-        rating: 5.0,
-      },
-    ],
+    peliculas: [ ],
   }),
+  mounted: function () {
+    this.recomendar();
+  },
   methods: {
+    recomendar(){
+      const data = {
+        pattern: "Accion",
+        user: this.nombreUsuario,
+      };
+      this.peliculas = [];
+      axios.post(this.IP + "/search", data).then((response) => {
+        console.log(response.data);
+        this.peliculas = response.data;
+      });
+    },
     addReview(rating, id) {
       for (var i = 0; i < this.peliculas.length; i++) {
         if (this.peliculas[i].id == id) {
@@ -135,7 +113,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(["IP"]),
+    ...mapState(["IP", "nombreUsuario"]),
   },
 };
 </script>

@@ -82,6 +82,7 @@ export default {
       axios.post(this.IP + "/rated_movies", data)
       .then( response =>{
         this.peliculas = response.data;
+        this.ordenar()
       }
       )
     },
