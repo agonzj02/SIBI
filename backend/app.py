@@ -253,9 +253,10 @@ class RatedMovies(Resource):
         db = get_db()
         result = db.read_transaction(get_rated_movies, username)
         return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], my_rating =record['rating']) for record in result]
+
 class Search(Resource):
     def post(self):
-        def search(tx, pattern):
+        def search(tx, pattern, username):
             return list(tx.run(
                 '''
                 match (m:Movie)-[:OF_GENRE]->(g:Genre), (m)<-[r:RATED]-(u:User)
@@ -263,19 +264,23 @@ class Search(Resource):
                 with m , count(r) as cnt
                 order by cnt desc limit 50
                 match (m)-[:OF_GENRE]->(g:Genre), (m)<-[:ACTED_IN]-(a:Actor), (m)<-[:DIRECTED]-(d:Director), (m)-[:OF_COUNTRY]-(c:Country)
-                return m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors, collect(distinct d.name) as directors, c.name as country
+                OPTIONAL MATCH (u1:User {username:$username})-[k:RATED]->(m:Movie)
+                return m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors, collect(distinct d.name) as directors, c.name as country, k.rating as rating
                 ''',
                 {
-                    'p': pattern.lower()
+                    'p': pattern.lower(),
+                    'username': username
                 }
             ))
 
         inp = request.get_json()
         pattern = inp['pattern']
+        username = inp['user']
 
         db = get_db()
-        result = db.read_transaction(search, pattern)
-        return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country']) for record in result]
+        result = db.read_transaction(search, pattern, username)
+        return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], record['rating']) for record in result]
+
 
 api.add_resource(Register, "/register")
 api.add_resource(Login, "/login")
