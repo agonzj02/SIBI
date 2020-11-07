@@ -62,6 +62,7 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
+const axios = require("axios");
 
 export default {
   name: "Pelicula",
@@ -94,6 +95,13 @@ export default {
       if (!this.clicked) {
         this.clicked = true;
       }
+      const data = {
+        user: this.nombreUsuario,
+        id: this.id,
+        rating: this.rating_aux
+      }
+      axios.post(this.IP + "/rate", data)
+
       this.addReview()
     },
   },
@@ -132,7 +140,7 @@ export default {
     link() {
       return "https://www.imdb.com/title/tt" + this.imdbID + "/";
     },
-    ...mapState(["IP"]),
+    ...mapState(["IP", "nombreUsuario"]),
   },
 };
 </script>
