@@ -70,7 +70,7 @@ export default {
   },
   data: () => ({
     algoritmo: "Basado en perfiles parecidos",
-    algoritmos: ["Basado en gustos propios", "Basado en perfiles parecidos"],
+    algoritmos: ["Basado en gustos propios", "Basado en perfiles parecidos", "Híbrido"],
     numero: 5,
     numeros: [1, 5, 10, 15, 20],
     items: [
