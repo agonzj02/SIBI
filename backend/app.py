@@ -253,14 +253,36 @@ class RatedMovies(Resource):
         db = get_db()
         result = db.read_transaction(get_rated_movies, username)
         return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], my_rating =record['rating']) for record in result]
+class Search(Resource):
+    def post(self):
+        def search(tx, pattern):
+            return list(tx.run(
+                '''
+                match (m:Movie)-[:OF_GENRE]->(g:Genre), (m)<-[r:RATED]-(u:User)
+                where toLower(m.title) contains $p or toLower(g.class) contains $p
+                with m , count(r) as cnt
+                order by cnt desc limit 50
+                match (m)-[:OF_GENRE]->(g:Genre), (m)<-[:ACTED_IN]-(a:Actor), (m)<-[:DIRECTED]-(d:Director), (m)-[:OF_COUNTRY]-(c:Country)
+                return m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors, collect(distinct d.name) as directors, c.name as country
+                ''',
+                {
+                    'p': pattern.lower()
+                }
+            ))
 
+        inp = request.get_json()
+        pattern = inp['pattern']
 
+        db = get_db()
+        result = db.read_transaction(search, pattern)
+        return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country']) for record in result]
 
 api.add_resource(Register, "/register")
 api.add_resource(Login, "/login")
 api.add_resource(TopMoviesByGenre, "/top")
 api.add_resource(RateMovie, "/rate")
 api.add_resource(RatedMovies, "/rated_movies")
+api.add_resource(Search, "/search")
 
 if __name__ == "__main__":
     app.run(debug=True)
