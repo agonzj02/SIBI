@@ -33,9 +33,9 @@
           :picture="item.picture"
           :year="item.year"
           :country="item.country"
-          :director="item.director"
+          :director="item.directors"
           :actors="item.actors"
-          :genre="item.genre"
+          :genre="item.genres"
           :inicial="true"
           :width="300"
           :height="400"
@@ -50,6 +50,8 @@
 <script>
 import Pelicula from "@/components/Pelicula.vue";
 import { mapState, mapMutations } from "vuex";
+const axios = require("axios");
+
 
 export default {
   name: "Valoraciones",
@@ -66,46 +68,23 @@ export default {
       "Orden alfabético(Z-A)",
     ],
     criterio: "Mejor valoradas primero",
-    peliculas: [
-      {
-        id: 11,
-        title: "Jumanji",
-        imdbID: "0113497",
-        picture: "http://content8.flixster.com/movie/56/79/73/5679734_det.jpg",
-        country: "USA",
-        director: "Joe Johnston",
-        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
-        genre: ["Adventure", "Fantasy", "Children"],
-        year: 2010,
-        rating: 3.5,
-      },
-      {
-        id: 804,
-        title: "Ella es unica",
-        imdbID: "0117628",
-        picture: "http://content9.flixster.com/movie/27/16/271699_det.jpg",
-        country: "USA",
-        director: "Joe Johnston",
-        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
-        genre: ["Adventure", "Fantasy", "Children"],
-        year: 2000,
-        rating: 2.5,
-      },
-      {
-        id: 3239,
-        title: "Ella es unica",
-        imdbID: "0141399",
-        picture: "http://content7.flixster.com/movie/28/13/281397_det.jpg",
-        country: "USA",
-        director: "Joe Johnston",
-        actors: ["Robin Williams", "James Handy", "Bebe Neuwirth"],
-        genre: ["Adventure", "Fantasy", "Children"],
-        year: 1980,
-        rating: 5.0,
-      },
-    ],
+    peliculas: [ ],
   }),
+  mounted: function () {
+    this.obtenerPeliculas();
+  },
   methods: {
+    obtenerPeliculas(){
+      this.peliculas = []
+      const data = {
+        user: this.nombreUsuario
+      }
+      axios.post(this.IP + "/rated_movies", data)
+      .then( response =>{
+        this.peliculas = response.data;
+      }
+      )
+    },
     ordenar() {
       if (this.criterio == "Mejor valoradas primero") {
         this.ordenar_mejor_valoradas();
@@ -164,7 +143,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(["IP"]),
+    ...mapState(["IP", "nombreUsuario"]),
   },
 };
 </script>

@@ -231,11 +231,36 @@ class RateMovie(Resource):
         result = db.write_transaction(rate_movie, id, username, rating)
         return serialize_rating(result['username'], result['id'], result['rating']), 200
 
+class RatedMovies(Resource):
+    def post(self):
+        def get_rated_movies(tx, username):
+            return list(tx.run(
+                '''
+                match (m:Movie)-[:OF_GENRE]->(g:Genre), (m)<-[:ACTED_IN]-(a:Actor), (m)<-[:DIRECTED]-(d:Director),
+                (m)-[:OF_COUNTRY]-(c:Country), (u:User)-[r:RATED]->(m)
+                where u.username = $username
+                return m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors,
+                collect(distinct d.name) as directors, c.name as country, r.rating as rating
+                ''',
+                {
+                'username': username
+                }
+            ))
+
+        inp = request.get_json()
+        username = inp['user']
+
+        db = get_db()
+        result = db.read_transaction(get_rated_movies, username)
+        return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], my_rating =record['rating']) for record in result]
+
+
 
 api.add_resource(Register, "/register")
 api.add_resource(Login, "/login")
 api.add_resource(TopMoviesByGenre, "/top")
 api.add_resource(RateMovie, "/rate")
+api.add_resource(RatedMovies, "/rated_movies")
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -24,7 +24,7 @@
           <v-divider></v-divider>
 
           <v-card-text>
-            <div>Director : {{ director }}</div>
+            <div>Director : {{ directores }}</div>
             <div class="mt-2">País : {{ country }}</div>
             <div class="mt-2">Año : {{ year }}</div>
             <div class="mt-2">
@@ -132,6 +132,16 @@ export default {
       for (var i = 0; i < this.actors.length; i++) {
         string += this.actors[i];
         if (i != this.actors.length - 1) {
+          string += ", ";
+        }
+      }
+      return string;
+    },
+    directores() {
+      var string = "";
+      for (var i = 0; i < this.director.length; i++) {
+        string += this.director[i];
+        if (i != this.director.length - 1) {
           string += ", ";
         }
       }
