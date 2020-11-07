@@ -149,7 +149,7 @@ class Login(Resource):
             return tx.run(
                 '''
                 MATCH (user:User {username: $username})
-                OPTIONAL MATCH (m)-[r:RATED]->(m:Movie) RETURN user, count(r) as cnt
+                OPTIONAL MATCH (user)-[r:RATED]->(m:Movie) RETURN user, count(r) as cnt
                 ''', {'username': username}
             ).single()
 
@@ -161,6 +161,7 @@ class Login(Resource):
 
         db = get_db()
         result = db.read_transaction(get_user_by_username, username)
+
         if result and result.get('user'):
             user = result['user']
             pas = user['password']
