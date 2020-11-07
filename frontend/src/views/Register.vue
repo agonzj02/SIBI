@@ -118,7 +118,7 @@ export default {
           nombre: this.nombre,
           apellidos: this.apellidos,
           user: this.user,
-          password: this.password
+          pass: this.password
         };
 
         axios.post(this.IP + "/register", userData).then(

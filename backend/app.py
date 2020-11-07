@@ -89,6 +89,13 @@ def serialize_top_movie(genre, movies):
         })
     return normalized
 
+def serialize_rating(user, movie, rating):
+    return {
+        'id' : movie,
+        'username': user,
+        'rating': rating
+    }
+
 class Register(Resource):
     def post(self):
         def get_user_by_username(tx, username):
@@ -123,7 +130,7 @@ class Register(Resource):
         nombre = inp['nombre']
         apellidos = inp['apellidos']
         username = inp['user']
-        password = inp['password']
+        password = inp['pass']
         password = password.encode("utf-8")
         password = base64.b64encode(password)
         db = get_db()
@@ -196,11 +203,38 @@ class TopMoviesByGenre(Resource):
         random.shuffle(final)
         return final, 200
 
+class RateMovie(Resource):
+    def post(self):
+        def rate_movie(tx, id, username, rating):
+            return tx.run(
+                '''
+                MATCH (u:User), (m:Movie)
+                WHERE u.username = $username AND m.id = $id
+                MERGE (u)-[r:RATED]->(m)
+                SET r.rating = toFloat($rating)
+                return u.username as username, r.rating as rating, m.id as id
+                ''',
+                {
+                'id': int(id),
+                'username': username,
+                'rating': rating
+                }
+            ).single()
+
+        inp = request.get_json()
+        username = inp['user']
+        id = inp['id']
+        rating = inp['rating']
+
+        db = get_db()
+        result = db.write_transaction(rate_movie, id, username, rating)
+        return serialize_rating(result['username'], result['id'], result['rating']), 200
 
 
 api.add_resource(Register, "/register")
 api.add_resource(Login, "/login")
 api.add_resource(TopMoviesByGenre, "/top")
+api.add_resource(RateMovie, "/rate")
 
 if __name__ == "__main__":
     app.run(debug=True)
