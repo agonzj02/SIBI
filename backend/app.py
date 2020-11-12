@@ -351,7 +351,8 @@ class Recommend(Resource):
                 movies_df['mix'] = movies_df.apply(create_mix, axis=1)
                 count = CountVectorizer()
                 count_matrix = count.fit_transform(movies_df['mix'])
-                print(count.get_feature_names())
+                return count_matrix.toarray(), count
+
 
 
             result = db.read_transaction(get_rated_movies, username)
@@ -363,8 +364,21 @@ class Recommend(Resource):
             all_movies = [serialize_movie(record['movie'], record['genres'], "", record['directors'], record['country']) for record in result]
             all_df = pd.DataFrame(all_movies)
             all_df.drop(['imdbID', 'picture', 'year', 'actors', 'rating'], axis = 1, inplace = True)
-            print(all_df.head())
-            generate_movies_matrix(all_df)
+            count_matrix, count = generate_movies_matrix(all_df)
+            feat_dict=sorted(count.vocabulary_.keys())
+            diccionario_resultante = dict(zip(feat_dict, [0 for elem in feat_dict]))
+            for key, value in profile.items():
+                diccionario_resultante[key.lower()] = value
+            #print(diccionario_resultante.values())
+            print(len(diccionario_resultante))
+            cosine_sim2 = cosine_similarity([list(diccionario_resultante.values())], count_matrix)
+            max_value = max(cosine_sim2[0])
+            max_index = list(cosine_sim2[0]).index(max_value)
+            print(all_df.iloc[max_index])
+
+            
+
+
 
 
 
