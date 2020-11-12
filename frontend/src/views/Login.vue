@@ -34,7 +34,7 @@
               <v-text-field
                 v-model="user"
                 name="email-sin"
-                label="Correo electrónico"
+                label="Nombre de usuario"
                 id="email-sin"
                 type="email"
                 required

@@ -16,6 +16,9 @@ from neo4j import GraphDatabase, basic_auth
 from neo4j.exceptions import Neo4jError
 import neo4j.time
 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
 load_dotenv(find_dotenv())
 
 app = Flask(__name__)
@@ -25,10 +28,6 @@ FlaskJSON(app)
 api = Api(app)
 
 def env(key, default=None, required=True):
-    """
-    Retrieves environment variables and returns Python natives. The (optional)
-    default will be returned if the environment variable does not exist.
-    """
     try:
         value = os.environ[key]
         return ast.literal_eval(value)
@@ -133,6 +132,7 @@ class Register(Resource):
         password = inp['pass']
         password = password.encode("utf-8")
         password = base64.b64encode(password)
+
         db = get_db()
         result = db.read_transaction(get_user_by_username, username)
         if result and result.get('user'):
@@ -212,8 +212,8 @@ class RateMovie(Resource):
                 MATCH (u:User), (m:Movie)
                 WHERE u.username = $username AND m.id = $id
                 MERGE (u)-[r:RATED]->(m)
-                SET r.rating = toFloat($rating)
-                return u.username as username, r.rating as rating, m.id as id
+                SET r.score = toFloat($rating)
+                return u.username as username, r.score as rating, m.id as id
                 ''',
                 {
                 'id': int(id),
@@ -240,7 +240,7 @@ class RatedMovies(Resource):
                 (m)-[:OF_COUNTRY]-(c:Country), (u:User)-[r:RATED]->(m)
                 where u.username = $username
                 return m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors,
-                collect(distinct d.name) as directors, c.name as country, r.rating as rating
+                collect(distinct d.name) as directors, c.name as country, r.score as rating
                 ''',
                 {
                 'username': username
@@ -265,7 +265,8 @@ class Search(Resource):
                 order by cnt desc limit 50
                 match (m)-[:OF_GENRE]->(g:Genre), (m)<-[:ACTED_IN]-(a:Actor), (m)<-[:DIRECTED]-(d:Director), (m)-[:OF_COUNTRY]-(c:Country)
                 OPTIONAL MATCH (u1:User {username:$username})-[k:RATED]->(m:Movie)
-                return m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors, collect(distinct d.name) as directors, c.name as country, k.rating as rating
+                return distinct m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors,
+                collect(distinct d.name) as directors, c.name as country, k.score as rating
                 ''',
                 {
                     'p': pattern.lower(),
@@ -281,6 +282,104 @@ class Search(Resource):
         result = db.read_transaction(search, pattern, username)
         return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], record['rating']) for record in result]
 
+class Recommend(Resource):
+    def post(self):
+        def get_rated_movies(tx, username):
+            return list(tx.run(
+                '''
+                match (m:Movie)-[:OF_GENRE]->(g:Genre), (m)<-[:ACTED_IN]-(a:Actor), (m)<-[:DIRECTED]-(d:Director),
+                (m)-[:OF_COUNTRY]-(c:Country), (u:User)-[r:RATED]->(m)
+                where u.username = $username
+                return m as movie ,collect(distinct g.class) as genres,collect( distinct a.id) as actors,
+                collect(distinct d.id) as directors, c.name as country, r.score as rating
+                ''',
+                {
+                'username': username
+                }
+            ))
+
+        def get_all_movies(tx):
+            return list(tx.run(
+                '''
+                match (m:Movie)-[:OF_GENRE]->(g:Genre), (m)<-[:DIRECTED]-(d:Director),
+                (m)-[:OF_COUNTRY]-(c:Country)
+                return m as movie ,collect(distinct g.class) as genres,
+                collect(distinct d.id) as directors, c.name as country
+                '''
+            ))
+
+        def recommend_content_based(db, username, number):
+            def create_profile(rated_df):
+                profile = dict()
+
+                def create_dict_profile(x, profile):
+                    genres = x['genres']
+                    directors = x['directors']
+                    country = x['country']
+                    for genre in genres:
+                        if genre not in profile:
+                            profile[genre] = [x['rating'], 1]
+                        else:
+                            rating, count = profile[genre]
+                            profile[genre] = [rating + x['rating'], count + 1]
+
+                    for director in directors:
+                        if director not in profile:
+                            profile[director] = [x['rating'], 1]
+                        else:
+                            rating, score = profile[director]
+                            profile[director] = [rating + x['rating'], score + 1]
+
+                    if country not in profile:
+                        profile[country] = [x['rating'],1]
+                    else:
+                        rating, score = profile[country]
+                        profile[country] = [rating + x['rating'], score + 1]
+
+                def normalize_profile(profile):
+                    for key, value in profile.items():
+                        profile[key] = round(value[0]/(value[1]*5),3)
+
+                rated_df.apply(create_dict_profile, profile = profile,axis=1)
+                normalize_profile(profile)
+                return profile
+
+            def generate_movies_matrix(movies_df):
+                def create_mix(x):
+                    return ' '.join(x['genres']) + ' ' + x['country'] + ' ' + ' '.join(x['directors'])
+
+                movies_df['mix'] = movies_df.apply(create_mix, axis=1)
+                count = CountVectorizer()
+                count_matrix = count.fit_transform(movies_df['mix'])
+                print(count.get_feature_names())
+
+
+            result = db.read_transaction(get_rated_movies, username)
+            rated_movies = [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], record['rating']) for record in result]
+            rated_df = pd.DataFrame(rated_movies)
+            rated_df.drop(['imdbID', 'picture', 'year', 'actors'], axis = 1, inplace = True)
+            profile = create_profile(rated_df)
+            result = db.read_transaction(get_all_movies)
+            all_movies = [serialize_movie(record['movie'], record['genres'], "", record['directors'], record['country']) for record in result]
+            all_df = pd.DataFrame(all_movies)
+            all_df.drop(['imdbID', 'picture', 'year', 'actors', 'rating'], axis = 1, inplace = True)
+            print(all_df.head())
+            generate_movies_matrix(all_df)
+
+
+
+
+        inp = request.get_json()
+        username = inp['user']
+        method = inp['method']
+        number = inp['number']
+
+        db = get_db()
+
+        if method == "content":
+            recommend_content_based(db, username, number)
+
+
 
 api.add_resource(Register, "/register")
 api.add_resource(Login, "/login")
@@ -288,6 +387,7 @@ api.add_resource(TopMoviesByGenre, "/top")
 api.add_resource(RateMovie, "/rate")
 api.add_resource(RatedMovies, "/rated_movies")
 api.add_resource(Search, "/search")
+api.add_resource(Recommend, "/recommend")
 
 if __name__ == "__main__":
     app.run(debug=True)
