@@ -4,6 +4,7 @@ import os
 import ast
 import base64
 import random
+import time
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -308,6 +309,7 @@ class Recommend(Resource):
                 '''
             ))
 
+
         def recommend_content_based(db, username, number):
             def create_profile(rated_df):
                 profile = dict()
@@ -349,6 +351,7 @@ class Recommend(Resource):
                     return ' '.join(x['genres']) + ' ' + x['country'] + ' ' + ' '.join(x['directors'])
 
                 movies_df['mix'] = movies_df.apply(create_mix, axis=1)
+
                 count = CountVectorizer()
                 count_matrix = count.fit_transform(movies_df['mix'])
                 return count_matrix.toarray(), count
@@ -356,32 +359,31 @@ class Recommend(Resource):
 
 
             result = db.read_transaction(get_rated_movies, username)
-            rated_movies = [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], record['rating']) for record in result]
+            rated_movies = [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'],
+            record['country'], record['rating']) for record in result]
             rated_df = pd.DataFrame(rated_movies)
             rated_df.drop(['imdbID', 'picture', 'year', 'actors'], axis = 1, inplace = True)
+
             profile = create_profile(rated_df)
+
+            start = time.time()
             result = db.read_transaction(get_all_movies)
             all_movies = [serialize_movie(record['movie'], record['genres'], "", record['directors'], record['country']) for record in result]
             all_df = pd.DataFrame(all_movies)
-            all_df.drop(['imdbID', 'picture', 'year', 'actors', 'rating'], axis = 1, inplace = True)
             count_matrix, count = generate_movies_matrix(all_df)
+            end = time.time()
+            print(f"La ejecucion tardó {(end - start)} segundos")
+
             feat_dict=sorted(count.vocabulary_.keys())
             diccionario_resultante = dict(zip(feat_dict, [0 for elem in feat_dict]))
             for key, value in profile.items():
                 diccionario_resultante[key.lower()] = value
             #print(diccionario_resultante.values())
-            print(len(diccionario_resultante))
+            #print(len(diccionario_resultante))
             cosine_sim2 = cosine_similarity([list(diccionario_resultante.values())], count_matrix)
             max_value = max(cosine_sim2[0])
             max_index = list(cosine_sim2[0]).index(max_value)
-            print(all_df.iloc[max_index])
-
-            
-
-
-
-
-
+            #print(all_df.iloc[max_index])
 
         inp = request.get_json()
         username = inp['user']
@@ -392,6 +394,8 @@ class Recommend(Resource):
 
         if method == "content":
             recommend_content_based(db, username, number)
+
+
 
 
 
