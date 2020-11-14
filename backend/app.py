@@ -55,7 +55,7 @@ def close_db(error):
     if hasattr(g, 'neo4j_db'):
         g.neo4j_db.close()
 
-def serialize_movie(movie, genres, actors, directors, country, my_rating=None):
+def serialize_movie(movie, genres, actors, directors, country, my_rating=None, directors_name = None):
     return {
         'id': movie['id'],
         'imdbID': movie['imdbID'],
@@ -66,8 +66,23 @@ def serialize_movie(movie, genres, actors, directors, country, my_rating=None):
         'actors' : actors,
         'directors': directors,
         'country': country,
-        'rating' : my_rating
+        'rating' : my_rating,
+        'directors_name' : directors_name
     }
+
+def serialize_movie_pandas(row):
+    return {
+            'id': row['id'],
+            'imdbID': row['imdbID'],
+            'title': row['title'],
+            'picture': row['picture'],
+            'year' : row['year'],
+            'genres' : row['genres'],
+            'actors' : row['actors'],
+            'directors': row['directors_name'],
+            'country': row['country'],
+            'rating' : None
+        }
 
 def serialize_user(user, num_rated=None):
     return{
@@ -303,9 +318,9 @@ class Recommend(Resource):
             return list(tx.run(
                 '''
                 match (m:Movie)-[:OF_GENRE]->(g:Genre), (m)<-[:DIRECTED]-(d:Director),
-                (m)-[:OF_COUNTRY]-(c:Country)
+                (m)-[:OF_COUNTRY]-(c:Country), (m)<-[:ACTED_IN]-(a:Actor)
                 return m as movie ,collect(distinct g.class) as genres,
-                collect(distinct d.id) as directors, c.name as country
+                collect(distinct d.id) as directors, c.name as country, collect( distinct a.id) as actors, collect(distinct d.name) as directors_name
                 '''
             ))
 
@@ -366,24 +381,27 @@ class Recommend(Resource):
 
             profile = create_profile(rated_df)
 
-            start = time.time()
             result = db.read_transaction(get_all_movies)
-            all_movies = [serialize_movie(record['movie'], record['genres'], "", record['directors'], record['country']) for record in result]
+            all_movies = [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], directors_name=record['directors_name']) for record in result]
             all_df = pd.DataFrame(all_movies)
             count_matrix, count = generate_movies_matrix(all_df)
-            end = time.time()
-            print(f"La ejecucion tardó {(end - start)} segundos")
 
-            feat_dict=sorted(count.vocabulary_.keys())
-            diccionario_resultante = dict(zip(feat_dict, [0 for elem in feat_dict]))
+
+            feat_dict=count.get_feature_names()
+
+            vector_perfil = dict(zip(feat_dict, [0 for elem in feat_dict]))
+
             for key, value in profile.items():
-                diccionario_resultante[key.lower()] = value
-            #print(diccionario_resultante.values())
-            #print(len(diccionario_resultante))
-            cosine_sim2 = cosine_similarity([list(diccionario_resultante.values())], count_matrix)
-            max_value = max(cosine_sim2[0])
-            max_index = list(cosine_sim2[0]).index(max_value)
-            #print(all_df.iloc[max_index])
+                vector_perfil[key.lower()] = value
+
+            cosine_sim2 = cosine_similarity([list(vector_perfil.values())], count_matrix)
+
+            all_df['score'] = cosine_sim2[0]
+
+            cond = rated_df['id']
+            all_df = all_df[~all_df['id'].isin(cond)]
+            return all_df
+            
 
         inp = request.get_json()
         username = inp['user']
@@ -392,8 +410,10 @@ class Recommend(Resource):
 
         db = get_db()
 
-        if method == "content":
-            recommend_content_based(db, username, number)
+        if method == "Basado en gustos propios":
+            recommended_df = recommend_content_based(db, username, number)
+            top_movies = recommended_df.nlargest(number, 'score')
+            return [serialize_movie_pandas(row) for index,row in top_movies.iterrows()]
 
 
 

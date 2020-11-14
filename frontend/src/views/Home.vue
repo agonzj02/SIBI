@@ -69,7 +69,7 @@ export default {
     Pelicula,
   },
   data: () => ({
-    algoritmo: "Basado en perfiles parecidos",
+    algoritmo: "Basado en gustos propios",
     algoritmos: ["Basado en gustos propios", "Basado en perfiles parecidos", "Híbrido"],
     numero: 5,
     numeros: [1, 5, 10, 15, 20],
@@ -92,15 +92,23 @@ export default {
   mounted: function () {
     this.recomendar();
   },
+  watch: {
+    numero: function () {
+      this.recomendar()
+    },
+    algoritmo: function () {
+      this.recomendar()
+    }
+  },
   methods: {
     recomendar(){
       const data = {
-        pattern: "Accion",
+        method: this.algoritmo,
         user: this.nombreUsuario,
+        number: this.numero
       };
       this.peliculas = [];
-      axios.post(this.IP + "/search", data).then((response) => {
-        console.log(response.data);
+      axios.post(this.IP + "/recommend", data).then((response) => {
         this.peliculas = response.data;
       });
     },
