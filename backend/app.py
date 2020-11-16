@@ -336,6 +336,25 @@ class Recommend(Resource):
                 }
             ))
 
+        def get_similar_users(tx, username):
+            return list(tx.run(
+                '''
+                match(u:User)-[r:RATED]->(m:Movie)
+                where u.username = $username
+                with r,m, collect(m.title) as titles,u
+                match(u1:User)-[r2:RATED]->(m2:Movie)
+                where m2.title in titles and u1<>u
+                with u1, count(r2) as cnt
+                with u1,cnt
+                order by cnt desc limit 100
+                match(u1)-[rr:RATED]->(j:Movie)
+                return u1.id as id, collect({id : j.id, score: rr.score}) as ratings
+                ''',
+                {
+                    'username': username
+                }
+            ))
+
 
         def recommend_content_based(db, username, number):
             def create_profile(rated_df):
@@ -415,15 +434,29 @@ class Recommend(Resource):
             return all_df
 
         def recommend_collaborative_filtering(db, username):
-            def serialize_rated(id, ratings):
-                lista = []
+            def serialize_rated(id, ratings, lista):
                 for rating in ratings:
                     lista.append([id, rating['id'], rating['score']])
-                return lista
+
             result = db.read_transaction(get_rated_movies_cf, username)
-            serial = [serialize_rated(record['id'], record['ratings']) for record in result]
-            print(serial)
-            return 1
+            lista_usuario = []
+            id_usuario = result[0]['id']
+            [serialize_rated(record['id'], record['ratings'], lista_usuario) for record in result]
+
+            result = db.read_transaction(get_similar_users, username)
+            [serialize_rated(record['id'], record['ratings'], lista_usuario) for record in result]
+
+            movies_df = pd.DataFrame(lista_usuario, columns =['user_id', 'movie_id', 'rating'])
+
+            ratings_matrix = pd.pivot_table(movies_df, values='rating', index='user_id', columns='movie_id')
+            print(ratings_matrix.head())
+
+            user = ratings_matrix.loc[id_usuario].notna()
+            print(user)
+            rr = user[user==True]
+            print(rr)
+
+
 
         inp = request.get_json()
         username = inp['user']
