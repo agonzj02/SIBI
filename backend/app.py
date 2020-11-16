@@ -61,7 +61,7 @@ def serialize_movie(movie, genres, actors, directors, country, my_rating=None, d
         'imdbID': movie['imdbID'],
         'title': movie['title'],
         'picture': movie['picture'],
-        'year' : 1980,
+        'year' : movie['year'],
         'genres' : genres,
         'actors' : actors,
         'directors': directors,
@@ -324,6 +324,18 @@ class Recommend(Resource):
                 '''
             ))
 
+        def get_rated_movies_cf(tx, username):
+            return list(tx.run(
+                '''
+                match (u:User)-[r:RATED]->(m:Movie)
+                where u.username = $username
+                return collect({id: m.id, score: r.score}) as ratings, u.id as id
+                ''',
+                {
+                'username': username
+                }
+            ))
+
 
         def recommend_content_based(db, username, number):
             def create_profile(rated_df):
@@ -401,7 +413,17 @@ class Recommend(Resource):
             cond = rated_df['id']
             all_df = all_df[~all_df['id'].isin(cond)]
             return all_df
-            
+
+        def recommend_collaborative_filtering(db, username):
+            def serialize_rated(id, ratings):
+                lista = []
+                for rating in ratings:
+                    lista.append([id, rating['id'], rating['score']])
+                return lista
+            result = db.read_transaction(get_rated_movies_cf, username)
+            serial = [serialize_rated(record['id'], record['ratings']) for record in result]
+            print(serial)
+            return 1
 
         inp = request.get_json()
         username = inp['user']
@@ -414,6 +436,8 @@ class Recommend(Resource):
             recommended_df = recommend_content_based(db, username, number)
             top_movies = recommended_df.nlargest(number, 'score')
             return [serialize_movie_pandas(row) for index,row in top_movies.iterrows()]
+        elif method == "Basado en perfiles parecidos":
+            recommended_df = recommend_collaborative_filtering(db,username)
 
 
 
