@@ -20,6 +20,8 @@ import neo4j.time
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+from scipy.stats import pearsonr
+
 load_dotenv(find_dotenv())
 
 app = Flask(__name__)
@@ -449,12 +451,39 @@ class Recommend(Resource):
             movies_df = pd.DataFrame(lista_usuario, columns =['user_id', 'movie_id', 'rating'])
 
             ratings_matrix = pd.pivot_table(movies_df, values='rating', index='user_id', columns='movie_id')
-            print(ratings_matrix.head())
 
-            user = ratings_matrix.loc[id_usuario].notna()
-            print(user)
-            rr = user[user==True]
-            print(rr)
+            user = ratings_matrix.loc[id_usuario]
+            user_valid = user.notna()
+            valid_indexes = user_valid[user_valid==True].index
+
+            ratings_matrix.drop([id_usuario], inplace = True)
+
+            def app(x, user, valid_indexes):
+                comparison = x
+                comparison_valid = comparison.notna()
+                val = comparison_valid[comparison_valid == True].index
+
+                intersection = valid_indexes.intersection(val)
+
+                prs,_ = pearsonr(user[intersection], comparison[intersection])
+                return prs
+
+            ratings_matrix['pearson'] = ratings_matrix.apply(app, user = user, valid_indexes = valid_indexes, axis = 1)
+
+            k = 10
+
+            top_k = ratings_matrix.nlargest(k, 'pearson')
+            pearson_mean = pd.DataFrame(top_k['pearson'])
+            top_k.drop('pearson', axis = 1, inplace = True)
+
+            top_k['mean'] = top_k.mean(axis=1)
+            pearson_mean = pearson_mean.join(top_k['mean'])
+            top_k.drop('mean', axis = 1, inplace = True)
+            print(pearson_mean.head())
+            print(top_k.head())
+
+
+
 
 
 
