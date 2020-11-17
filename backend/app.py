@@ -479,6 +479,8 @@ class Recommend(Resource):
             top_k['mean'] = top_k.mean(axis=1)
             pearson_mean = pearson_mean.join(top_k['mean'])
             top_k.drop('mean', axis = 1, inplace = True)
+
+            top_k.drop(valid_indexes, axis = 1, inplace = True)
             print(pearson_mean.head())
             print(top_k.head())
 
