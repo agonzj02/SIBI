@@ -504,11 +504,13 @@ class Recommend(Resource):
                 indexes = comparison_valid[comparison_valid == True].index
                 numerador = 0
                 denominador = 0
-                for v in indexes:
-                    numerador += (pearson_mean.loc[v]['pearson'] * (movie[v] - pearson_mean.loc[v]['mean']))
-                    denominador += abs(pearson_mean.loc[v]['pearson'])
+                estimacion = 0
+                if len(indexes)>2:
+                    for v in indexes:
+                        numerador += (pearson_mean.loc[v]['pearson'] * (movie[v] - pearson_mean.loc[v]['mean']))
+                        denominador += abs(pearson_mean.loc[v]['pearson'])
 
-                estimacion = media_usuario + numerador/denominador
+                    estimacion = media_usuario + numerador/denominador
                 return estimacion
 
             predicciones = top_k.apply(predict_score, pearson_mean = pearson_mean, axis = 0)
@@ -538,7 +540,6 @@ class Recommend(Resource):
             recommended_df = recommend_collaborative_filtering(db,username)
             top_movies = recommended_df.head(number)
             ids_peliculas = top_movies.index.tolist()
-            print(ids_peliculas)
             result = db.read_transaction(get_movies_by_id, ids_peliculas)
             desordenado = [serialize_movie(record['movie'], record['genres'], "", record['directors'], record['country']) for record in result]
             ordenado = []
