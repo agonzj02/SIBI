@@ -357,6 +357,20 @@ class Recommend(Resource):
                 }
             ))
 
+        def get_movies_by_id(tx, ids):
+            return list(tx.run(
+            '''
+            match (m:Movie)-[:OF_GENRE]->(g:Genre), (m)<-[:DIRECTED]-(d:Director),
+            (m)-[:OF_COUNTRY]-(c:Country)
+            where m.id in $ids
+            return m as movie ,collect(distinct g.class) as genres,
+            collect(distinct d.name) as directors, c.name as country
+            ''',
+            {
+            'ids': ids
+            }
+            ))
+
 
         def recommend_content_based(db, username, number):
             def create_profile(rated_df):
@@ -455,10 +469,11 @@ class Recommend(Resource):
             user = ratings_matrix.loc[id_usuario]
             user_valid = user.notna()
             valid_indexes = user_valid[user_valid==True].index
+            media_usuario = user[valid_indexes].mean()
 
             ratings_matrix.drop([id_usuario], inplace = True)
 
-            def app(x, user, valid_indexes):
+            def calculate_pearson(x, user, valid_indexes):
                 comparison = x
                 comparison_valid = comparison.notna()
                 val = comparison_valid[comparison_valid == True].index
@@ -468,11 +483,12 @@ class Recommend(Resource):
                 prs,_ = pearsonr(user[intersection], comparison[intersection])
                 return prs
 
-            ratings_matrix['pearson'] = ratings_matrix.apply(app, user = user, valid_indexes = valid_indexes, axis = 1)
+            ratings_matrix['pearson'] = ratings_matrix.apply(calculate_pearson, user = user, valid_indexes = valid_indexes, axis = 1)
 
             k = 10
 
             top_k = ratings_matrix.nlargest(k, 'pearson')
+            top_k = top_k.dropna(how="all", axis=1)
             pearson_mean = pd.DataFrame(top_k['pearson'])
             top_k.drop('pearson', axis = 1, inplace = True)
 
@@ -481,8 +497,26 @@ class Recommend(Resource):
             top_k.drop('mean', axis = 1, inplace = True)
 
             top_k.drop(valid_indexes, axis = 1, inplace = True)
-            print(pearson_mean.head())
-            print(top_k.head())
+
+            def predict_score(x, pearson_mean):
+                movie = x
+                comparison_valid = movie.notna()
+                indexes = comparison_valid[comparison_valid == True].index
+                numerador = 0
+                denominador = 0
+                for v in indexes:
+                    numerador += (pearson_mean.loc[v]['pearson'] * (movie[v] - pearson_mean.loc[v]['mean']))
+                    denominador += abs(pearson_mean.loc[v]['pearson'])
+
+                estimacion = media_usuario + numerador/denominador
+                return estimacion
+
+            predicciones = top_k.apply(predict_score, pearson_mean = pearson_mean, axis = 0)
+            predicciones = predicciones.sort_values(ascending= False)
+            predicciones[predicciones>5] = 5
+            predicciones[predicciones<0] = 0
+            predicciones = predicciones/5
+            return predicciones
 
 
 
@@ -502,6 +536,18 @@ class Recommend(Resource):
             return [serialize_movie_pandas(row) for index,row in top_movies.iterrows()]
         elif method == "Basado en perfiles parecidos":
             recommended_df = recommend_collaborative_filtering(db,username)
+            top_movies = recommended_df.head(number)
+            ids_peliculas = top_movies.index.tolist()
+            print(ids_peliculas)
+            result = db.read_transaction(get_movies_by_id, ids_peliculas)
+            desordenado = [serialize_movie(record['movie'], record['genres'], "", record['directors'], record['country']) for record in result]
+            ordenado = []
+            for id in ids_peliculas:
+                for elem in desordenado:
+                    if elem['id'] == id:
+                        ordenado.append(elem)
+            return ordenado
+
 
 
 
