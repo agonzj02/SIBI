@@ -343,9 +343,9 @@ class Recommend(Resource):
                 '''
                 match(u:User)-[r:RATED]->(m:Movie)
                 where u.username = $username
-                with r,m, collect(m.title) as titles,u
+                with r,m, collect(m.id) as ids,u
                 match(u1:User)-[r2:RATED]->(m2:Movie)
-                where m2.title in titles and u1<>u
+                where m2.id in ids and u1<>u
                 with u1, count(r2) as cnt
                 with u1,cnt
                 order by cnt desc limit 100
@@ -486,7 +486,6 @@ class Recommend(Resource):
             ratings_matrix['pearson'] = ratings_matrix.apply(calculate_pearson, user = user, valid_indexes = valid_indexes, axis = 1)
 
             k = 10
-
             top_k = ratings_matrix.nlargest(k, 'pearson')
             top_k = top_k.dropna(how="all", axis=1)
             pearson_mean = pd.DataFrame(top_k['pearson'])
@@ -496,7 +495,7 @@ class Recommend(Resource):
             pearson_mean = pearson_mean.join(top_k['mean'])
             top_k.drop('mean', axis = 1, inplace = True)
 
-            top_k.drop(valid_indexes, axis = 1, inplace = True)
+            top_k.drop(valid_indexes, axis = 1, inplace = True, errors='ignore')
 
             def predict_score(x, pearson_mean):
                 movie = x
@@ -538,10 +537,13 @@ class Recommend(Resource):
             return [serialize_movie_pandas(row) for index,row in top_movies.iterrows()]
         elif method == "Basado en perfiles parecidos":
             recommended_df = recommend_collaborative_filtering(db,username)
+
             top_movies = recommended_df.head(number)
+
             ids_peliculas = top_movies.index.tolist()
             result = db.read_transaction(get_movies_by_id, ids_peliculas)
             desordenado = [serialize_movie(record['movie'], record['genres'], "", record['directors'], record['country']) for record in result]
+
             ordenado = []
             for id in ids_peliculas:
                 for elem in desordenado:
