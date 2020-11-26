@@ -535,6 +535,7 @@ class Recommend(Resource):
             recommended_df = recommend_content_based(db, username, number)
             top_movies = recommended_df.nlargest(number, 'score')
             return [serialize_movie_pandas(row) for index,row in top_movies.iterrows()]
+
         elif method == "Basado en perfiles parecidos":
             recommended_df = recommend_collaborative_filtering(db,username)
 
@@ -550,9 +551,11 @@ class Recommend(Resource):
                     if elem['id'] == id:
                         ordenado.append(elem)
             return ordenado
+
         elif method == "Híbrido":
             cb_df = recommend_content_based(db, username, number)
             cf_df = recommend_collaborative_filtering(db,username)
+
             cb_df = cb_df.rename(columns={'score': 'cb_score'})
             cf_df = cf_df.to_frame()
             cf_df = cf_df.rename(columns={0: 'cf_score'})
@@ -565,10 +568,10 @@ class Recommend(Resource):
                 return alpha_cb * x['cb_score'] + alpha_cf * x['cf_score']
 
             alpha_cb = 0.4
-            alpha_cf = 0.6
+            alpha_cf = 1 - alpha_cb
             mix_df['final_score'] = mix_df.apply(calculate_weighted_sum, alpha_cb = alpha_cb, alpha_cf = alpha_cf, axis=1)
+
             top_movies = mix_df.nlargest(number, 'final_score')
-            print(top_movies)
             return [serialize_movie_pandas(row) for index,row in top_movies.iterrows()]
 
 
