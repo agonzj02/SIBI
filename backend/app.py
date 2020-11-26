@@ -496,6 +496,7 @@ class Recommend(Resource):
             top_k.drop('mean', axis = 1, inplace = True)
 
             top_k.drop(valid_indexes, axis = 1, inplace = True, errors='ignore')
+            print(top_k[[2023]])
 
             def predict_score(x, pearson_mean):
                 movie = x
@@ -504,7 +505,7 @@ class Recommend(Resource):
                 numerador = 0
                 denominador = 0
                 estimacion = 0
-                if len(indexes)>2:
+                if len(indexes)>6:
                     for v in indexes:
                         numerador += (pearson_mean.loc[v]['pearson'] * (movie[v] - pearson_mean.loc[v]['mean']))
                         denominador += abs(pearson_mean.loc[v]['pearson'])
@@ -513,7 +514,9 @@ class Recommend(Resource):
                 return estimacion
 
             predicciones = top_k.apply(predict_score, pearson_mean = pearson_mean, axis = 0)
+            print(predicciones[[2023]])
             predicciones = predicciones.sort_values(ascending= False)
+            print(predicciones.head(30))
             predicciones[predicciones>5] = 5
             predicciones[predicciones<0] = 0
             predicciones = predicciones/5
