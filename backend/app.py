@@ -462,9 +462,9 @@ class Recommend(Resource):
             result = db.read_transaction(get_similar_users, username)
             [serialize_rated(record['id'], record['ratings'], lista_usuario) for record in result]
 
-            movies_df = pd.DataFrame(lista_usuario, columns =['user_id', 'movie_id', 'rating'])
+            movies_df = pd.DataFrame(lista_usuario, columns =['user_id', 'id', 'rating'])
 
-            ratings_matrix = pd.pivot_table(movies_df, values='rating', index='user_id', columns='movie_id')
+            ratings_matrix = pd.pivot_table(movies_df, values='rating', index='user_id', columns='id')
 
             user = ratings_matrix.loc[id_usuario]
             user_valid = user.notna()
@@ -496,7 +496,6 @@ class Recommend(Resource):
             top_k.drop('mean', axis = 1, inplace = True)
 
             top_k.drop(valid_indexes, axis = 1, inplace = True, errors='ignore')
-            print(top_k[[2023]])
 
             def predict_score(x, pearson_mean):
                 movie = x
@@ -505,7 +504,7 @@ class Recommend(Resource):
                 numerador = 0
                 denominador = 0
                 estimacion = 0
-                if len(indexes)>6:
+                if len(indexes)>3:
                     for v in indexes:
                         numerador += (pearson_mean.loc[v]['pearson'] * (movie[v] - pearson_mean.loc[v]['mean']))
                         denominador += abs(pearson_mean.loc[v]['pearson'])
@@ -514,9 +513,7 @@ class Recommend(Resource):
                 return estimacion
 
             predicciones = top_k.apply(predict_score, pearson_mean = pearson_mean, axis = 0)
-            print(predicciones[[2023]])
             predicciones = predicciones.sort_values(ascending= False)
-            print(predicciones.head(30))
             predicciones[predicciones>5] = 5
             predicciones[predicciones<0] = 0
             predicciones = predicciones/5
@@ -553,6 +550,27 @@ class Recommend(Resource):
                     if elem['id'] == id:
                         ordenado.append(elem)
             return ordenado
+        elif method == "Híbrido":
+            cb_df = recommend_content_based(db, username, number)
+            cf_df = recommend_collaborative_filtering(db,username)
+            cb_df = cb_df.rename(columns={'score': 'cb_score'})
+            cf_df = cf_df.to_frame()
+            cf_df = cf_df.rename(columns={0: 'cf_score'})
+            cf_df = cf_df.reset_index()
+
+            mix_df = pd.merge(cb_df, cf_df, how='left', on='id')
+            mix_df.fillna(0, inplace=True)
+
+            def calculate_weighted_sum(x, alpha_cb, alpha_cf):
+                return alpha_cb * x['cb_score'] + alpha_cf * x['cf_score']
+
+            alpha_cb = 0.4
+            alpha_cf = 0.6
+            mix_df['final_score'] = mix_df.apply(calculate_weighted_sum, alpha_cb = alpha_cb, alpha_cf = alpha_cf, axis=1)
+            top_movies = mix_df.nlargest(number, 'final_score')
+            print(top_movies)
+            return [serialize_movie_pandas(row) for index,row in top_movies.iterrows()]
+
 
 
 
