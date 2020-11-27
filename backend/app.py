@@ -389,10 +389,10 @@ class Recommend(Resource):
 
                     for director in directors:
                         if director not in profile:
-                            profile[director] = [x['rating'], 1]
+                            profile[director] = [2*x['rating'], 1]
                         else:
                             rating, score = profile[director]
-                            profile[director] = [rating + x['rating'], score + 1]
+                            profile[director] = [rating + 2*x['rating'], score + 1]
 
                     if country not in profile:
                         profile[country] = [x['rating'],1]
@@ -400,17 +400,20 @@ class Recommend(Resource):
                         rating, score = profile[country]
                         profile[country] = [rating + x['rating'], score + 1]
 
-                def normalize_profile(profile):
+                def normalize_profile(profile, length):
                     for key, value in profile.items():
+                        if (value[1]/length) < 0.3:
+                            value[0] = (value[0]*value[1])/length
                         profile[key] = round(value[0]/(value[1]*5),3)
 
                 rated_df.apply(create_dict_profile, profile = profile,axis=1)
-                normalize_profile(profile)
+                normalize_profile(profile, len(rated_df.index))
+                print(profile)
                 return profile
 
             def generate_movies_matrix(movies_df):
                 def create_mix(x):
-                    return ' '.join(x['genres']) + ' ' + x['country'] + ' ' + ' '.join(x['directors'])
+                    return ' '.join(x['genres']) + ' ' + x['country'] + ' ' + ' '.join(x['directors']) + ' ' + ' '.join(x['directors'])
 
                 movies_df['mix'] = movies_df.apply(create_mix, axis=1)
 
