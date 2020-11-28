@@ -37,6 +37,23 @@
         ></Pelicula>
       </v-col>
     </v-row>
+
+    <v-row>
+      <v-dialog v-model="dialog" hide-overlay :persistent="true" width="300">
+        <v-card color="red darken-4" dark>
+          <v-card-text class="text-center">
+            Espere mientras cargan las películas...
+          </v-card-text>
+          <v-card-actions class="justify-center">
+            <v-progress-circular
+              indeterminate
+              color="white"
+              class="mb-0"
+            ></v-progress-circular>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
   </v-container>
 </template>
 
@@ -53,6 +70,7 @@ export default {
   data: () => ({
     peliculas: [],
     pattern: "",
+    dialog: false,
   }),
   mounted: function () {
     this.obtenerPeliculas();
@@ -74,9 +92,11 @@ export default {
         pattern: this.pattern,
         user: this.nombreUsuario,
       };
+            this.dialog = true
       axios.post(this.IP + "/search", data).then((response) => {
         this.peliculas = [];
         this.peliculas = response.data;
+        this.dialog = false
       });
     },
     addReview(rating, id) {

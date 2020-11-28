@@ -1,7 +1,7 @@
 <template>
   <v-card class="mx-auto" :max-width="width">
     <v-img :src="picture" :width="width" :height="height"></v-img>
-    <v-card-title>
+    <v-card-title style="word-break: break-word">
       {{ title }}
     </v-card-title>
     <div v-if="inicial">

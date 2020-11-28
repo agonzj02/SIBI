@@ -53,6 +53,22 @@
         ></Pelicula>
       </v-col>
     </v-row>
+    <v-row>
+      <v-dialog v-model="dialog" hide-overlay :persistent="true" width="300">
+        <v-card color="red darken-4" dark>
+          <v-card-text class="text-center">
+            Espere mientras se efectúa la recomendación...
+          </v-card-text>
+          <v-card-actions class="justify-center">
+            <v-progress-circular
+              indeterminate
+              color="white"
+              class="mb-0"
+            ></v-progress-circular>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
   </v-container>
 </template>
 
@@ -67,47 +83,54 @@ export default {
     Pelicula,
   },
   data: () => ({
+    dialog: false,
     algoritmo: "Basado en gustos propios",
-    algoritmos: ["Basado en gustos propios", "Basado en perfiles parecidos", "Híbrido"],
+    algoritmos: [
+      "Basado en gustos propios",
+      "Basado en perfiles parecidos",
+      "Híbrido",
+    ],
     numero: 4,
     numeros: [1, 4, 8, 12, 20, 40],
     items: [
       {
-        src: require('../assets/Padrino.jpg'),
+        src: require("../assets/Padrino.jpg"),
       },
       {
-        src: require('../assets/Gladiator.jpg'),
+        src: require("../assets/Gladiator.jpg"),
       },
       {
-        src: require('../assets/Regreso.jpg'),
+        src: require("../assets/Regreso.jpg"),
       },
       {
-        src: require('../assets/ET.jpg'),
+        src: require("../assets/ET.jpg"),
       },
     ],
-    peliculas: [ ],
+    peliculas: [],
   }),
   mounted: function () {
     this.recomendar();
   },
   watch: {
     numero: function () {
-      this.recomendar()
+      this.recomendar();
     },
     algoritmo: function () {
-      this.recomendar()
-    }
+      this.recomendar();
+    },
   },
   methods: {
-    recomendar(){
+    recomendar() {
       const data = {
         method: this.algoritmo,
         user: this.nombreUsuario,
-        number: this.numero
+        number: this.numero,
       };
+      this.dialog = true;
       this.peliculas = [];
       axios.post(this.IP + "/recommend", data).then((response) => {
         this.peliculas = response.data;
+        this.dialog = false;
       });
     },
     addReview(rating, id) {
