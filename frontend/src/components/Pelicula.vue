@@ -31,7 +31,7 @@
               <v-btn
                 class="ma-2"
                 outlined
-                color="indigo"
+                color="red"
                 :href="link"
                 target="_blank"
               >

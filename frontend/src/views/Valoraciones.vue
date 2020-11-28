@@ -25,7 +25,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="2" v-for="item in peliculas" :key="item.id">
+      <v-col sm="4" md="3" lg="2" v-for="item in peliculas" :key="item.id">
         <Pelicula
           :title="item.title"
           :id="item.id"

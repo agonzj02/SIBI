@@ -408,7 +408,7 @@ class Recommend(Resource):
 
                 rated_df.apply(create_dict_profile, profile = profile,axis=1)
                 normalize_profile(profile, len(rated_df.index))
-                print(profile)
+
                 return profile
 
             def generate_movies_matrix(movies_df):

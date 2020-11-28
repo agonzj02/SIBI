@@ -3,13 +3,11 @@
     <v-row align="start" align-start>
       <v-col cols="12">
         <v-card elevation="24" class="mx-auto" dark>
-          <v-carousel height="300" width="7500">
+          <v-carousel height="300" width="7500" cycle hide-delimiters>
             <v-carousel-item
               v-for="(item, i) in items"
               :key="i"
               :src="item.src"
-              reverse-transition="fade-transition"
-              transition="fade-transition"
             ></v-carousel-item>
           </v-carousel>
           <v-divider></v-divider>
@@ -36,7 +34,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="1" v-for="item in peliculas" :key="item.id">
+      <v-col sm="4" md="3" lg="2" v-for="item in peliculas" :key="item.id">
         <Pelicula
           :title="item.title"
           :id="item.id"
@@ -71,20 +69,20 @@ export default {
   data: () => ({
     algoritmo: "Basado en gustos propios",
     algoritmos: ["Basado en gustos propios", "Basado en perfiles parecidos", "Híbrido"],
-    numero: 5,
-    numeros: [1, 5, 10, 15, 20],
+    numero: 4,
+    numeros: [1, 4, 8, 12, 20, 40],
     items: [
       {
-        src: "https://cdn.vuetifyjs.com/images/carousel/squirrel.jpg",
+        src: require('../assets/Padrino.jpg'),
       },
       {
-        src: "https://cdn.vuetifyjs.com/images/carousel/sky.jpg",
+        src: require('../assets/Gladiator.jpg'),
       },
       {
-        src: "https://cdn.vuetifyjs.com/images/carousel/bird.jpg",
+        src: require('../assets/Regreso.jpg'),
       },
       {
-        src: "https://cdn.vuetifyjs.com/images/carousel/planet.jpg",
+        src: require('../assets/ET.jpg'),
       },
     ],
     peliculas: [ ],
