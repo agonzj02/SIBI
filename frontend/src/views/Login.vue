@@ -12,7 +12,7 @@
 
       <v-col class="mb-4">
         <h1 class="display-2 font-weight-bold mb-3 white--text">
-          Bienvenido a MovieGraph
+          Bienvenido a iRate
         </h1>
       </v-col>
 

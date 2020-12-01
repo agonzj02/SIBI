@@ -3,7 +3,7 @@
     :style=color_fondo>
     <v-app-bar app v-if="logged" clipped-left src="./assets/banner.jpg">
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" color="white"></v-app-bar-nav-icon>
-      <v-toolbar-title class="display-1 font-weight-bold white--text" >MovieGraph</v-toolbar-title>
+      <v-toolbar-title class="display-1 font-weight-bold white--text" >iRate</v-toolbar-title>
       <v-spacer></v-spacer>
       
       <v-btn fab small ml-10 color="white" @click="cerrarSesionDialog"> 

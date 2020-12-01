@@ -6,7 +6,7 @@
       </v-col>
 
       <v-col class="mb-4" cols="12">
-        <h1 class="display-2 font-weight-bold mb-3 white--text">Bienvenido a MovieGraph</h1>
+        <h1 class="display-2 font-weight-bold mb-3 white--text">Bienvenido a iRate</h1>
       </v-col>
 
       <v-col cols="12">
