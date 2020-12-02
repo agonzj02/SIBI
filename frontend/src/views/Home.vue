@@ -84,13 +84,13 @@ export default {
   },
   data: () => ({
     dialog: false,
-    algoritmo: "Basado en gustos propios",
+    algoritmo: "Híbrido",
     algoritmos: [
       "Basado en gustos propios",
       "Basado en perfiles parecidos",
       "Híbrido",
     ],
-    numero: 4,
+    numero: 20,
     numeros: [1, 4, 8, 12, 20, 40],
     items: [
       {
