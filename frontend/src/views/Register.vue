@@ -2,12 +2,10 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <v-img :src="require('../assets/movie.png')" class="my-3" contain height="200" />
+        <v-img :src="require('../assets/logo.png')" class="my-3" contain height="200" />
       </v-col>
 
-      <v-col class="mb-4" cols="12">
-        <h1 class="display-2 font-weight-bold mb-3 white--text">Bienvenido a iRate</h1>
-      </v-col>
+      
 
       <v-col cols="12">
         <v-row justify="center" mb-5>
