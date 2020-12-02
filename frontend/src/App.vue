@@ -78,7 +78,7 @@ export default {
       drawer: null,
       dialog:false,
       items: [
-        { title: "Inicio", icon: "mdi-home-variant" },
+        { title: "Recomendaciones", icon: "mdi-home-variant" },
         { title: "Buscar películas", icon: "mdi-movie" },
         { title: "Mis valoraciones", icon: "mdi-star-circle" },
       ]
@@ -92,7 +92,7 @@ export default {
       else if(item.title == "Buscar películas"){
         this.$router.push('/buscar')
       }
-      else if(item.title == "Inicio"){
+      else if(item.title == "Recomendaciones"){
         this.$router.push("/home")
       }
     },
