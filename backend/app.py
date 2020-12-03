@@ -222,6 +222,25 @@ class TopMoviesByGenre(Resource):
         random.shuffle(final)
         return final, 200
 
+    def post(self):
+        def get_full_top_movies(tx, username):
+            return list(tx.run(
+                '''
+                match(u:User)-[j:RATED]->(m:Movie)-[r:OF_GENRE]->(g:Genre)
+                with m, g, count(j) as nr
+                order by nr desc
+                with g.class as genre, collect(m)[0..5] as movies
+                unwind movies as m
+                match (m)-[:OF_GENRE]->(g:Genre), (m)<-[:ACTED_IN]-(a:Actor), (m)<-[:DIRECTED]-(d:Director), (m)-[:OF_COUNTRY]-(c:Country)
+                OPTIONAL MATCH (u1:User {username:$username})-[k:RATED]->(m)
+                return distinct m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors,
+                collect(distinct d.name) as directors, c.name as country, k.score as rating
+                ''',
+                {
+                'username': username
+                }
+            ))
+
 class RateMovie(Resource):
     def post(self):
         def rate_movie(tx, id, username, rating):
