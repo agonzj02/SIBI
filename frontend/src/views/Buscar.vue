@@ -78,13 +78,13 @@ export default {
   methods: {
     obtenerPeliculas() {
       const data = {
-        pattern: "Accion",
         user: this.nombreUsuario,
       };
+      this.dialog = true
       this.peliculas = [];
-      axios.post(this.IP + "/search", data).then((response) => {
-        console.log(response.data);
+      axios.post(this.IP + "/top", data).then((response) => {
         this.peliculas = response.data;
+        this.dialog = false
       });
     },
     buscar() {

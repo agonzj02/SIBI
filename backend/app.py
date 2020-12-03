@@ -231,6 +231,8 @@ class TopMoviesByGenre(Resource):
                 order by nr desc
                 with g.class as genre, collect(m)[0..5] as movies
                 unwind movies as m
+                with m, rand() AS r
+                order by r
                 match (m)-[:OF_GENRE]->(g:Genre), (m)<-[:ACTED_IN]-(a:Actor), (m)<-[:DIRECTED]-(d:Director), (m)-[:OF_COUNTRY]-(c:Country)
                 OPTIONAL MATCH (u1:User {username:$username})-[k:RATED]->(m)
                 return distinct m as movie ,collect(distinct g.class) as genres,collect( distinct a.name) as actors,
@@ -240,6 +242,13 @@ class TopMoviesByGenre(Resource):
                 'username': username
                 }
             ))
+
+        inp = request.get_json()
+        username = inp['user']
+
+        db = get_db()
+        result = db.read_transaction(get_full_top_movies, username)
+        return [serialize_movie(record['movie'], record['genres'], record['actors'], record['directors'], record['country'], my_rating =record['rating']) for record in result]
 
 class RateMovie(Resource):
     def post(self):
