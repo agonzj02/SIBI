@@ -99,7 +99,7 @@ export default {
             this.setNombreUsuario(user["username"]);
             if (user["num_rated"] != 0) {
               this.logearse();
-              this.$router.push("/home");
+              this.$router.push("/buscar");
             } else {
               this.logearse();
               this.$router.push("/inicial");
