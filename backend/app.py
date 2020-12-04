@@ -430,8 +430,7 @@ class Recommend(Resource):
 
                 def normalize_profile(profile, length):
                     for key, value in profile.items():
-                        if (value[1]/length) < 0.3:
-                            value[0] = (value[0]*value[1])/length
+                        value[0] = (value[0]*value[1])/length
                         profile[key] = round(value[0]/(value[1]*5),3)
 
                 rated_df.apply(create_dict_profile, profile = profile,axis=1)
@@ -510,8 +509,16 @@ class Recommend(Resource):
                 val = comparison_valid[comparison_valid == True].index
 
                 intersection = valid_indexes.intersection(val)
+                us = user[intersection]
 
-                prs,_ = pearsonr(user[intersection], comparison[intersection])
+                epsilon = 0.0000000001
+                if us.nunique()==1:
+                    us.iloc[-1] -= epsilon
+                cs = comparison[intersection]
+                if cs.nunique()==1:
+                    cs.iloc[-1] -= epsilon
+
+                prs,_ = pearsonr(us, cs)
                 return prs
 
             ratings_matrix['pearson'] = ratings_matrix.apply(calculate_pearson, user = user, valid_indexes = valid_indexes, axis = 1)
@@ -528,6 +535,7 @@ class Recommend(Resource):
 
             top_k.drop(valid_indexes, axis = 1, inplace = True, errors='ignore')
 
+
             def predict_score(x, pearson_mean):
                 movie = x
                 comparison_valid = movie.notna()
@@ -535,7 +543,7 @@ class Recommend(Resource):
                 numerador = 0
                 denominador = 0
                 estimacion = 0
-                if len(indexes)>3:
+                if len(indexes)>2:
                     for v in indexes:
                         numerador += (pearson_mean.loc[v]['pearson'] * (movie[v] - pearson_mean.loc[v]['mean']))
                         denominador += abs(pearson_mean.loc[v]['pearson'])
