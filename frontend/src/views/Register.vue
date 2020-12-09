@@ -72,6 +72,7 @@
                 required
                 dark
                 prepend-icon="mdi-fingerprint"
+                @keydown.native.enter="confirmaRegistro"
               ></v-text-field>
             </v-row>
             <v-alert :value="visibleAlerta" justify-center type="error" height="40" dense>Ese usuario ya ha sido registrado.</v-alert>
