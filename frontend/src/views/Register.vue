@@ -77,7 +77,7 @@
             <v-alert :value="visibleAlerta" justify-center type="error" height="40" dense>Ese usuario ya ha sido registrado.</v-alert>
             <v-row>
               <v-col xs12 sm6>
-                <v-btn @click="confirmaRegistro" type="submit"  color="white" light>Confirmar</v-btn>
+                <v-btn @click="confirmaRegistro" color="white" light>Confirmar</v-btn>
               </v-col>
               <v-col xs12 sm6>
                 <router-link to="/Login" tag="button">
