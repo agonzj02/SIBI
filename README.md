@@ -1,4 +1,4 @@
-# SIBI
+# iRate
 
 Repositorio en el que se ha ido desarrollando el trabajo realizado en la asignatura Sistemas de información de gestión y Business Intelligence, perteneciente al grado de     Ingeniería Informática de la Universidad de León.
 
